@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -21,27 +20,23 @@ public class Main {
 	private static List<Cluster> clusters;
 	private static int width;
 	private static int height;
-	private static int[][] lookupMat;
-	private static HashMap<Integer, Character> map;
+	private static HashMap<String, Integer> clustersMap;
+	private static HashMap<Integer, Character> asciiMap;
+	
 	
 	public static void main(String[] args) {
 		
-		String fileContent = "";
-		map = new HashMap<Integer, Character>();
+		String fileContent;
+		asciiMap = new HashMap<Integer, Character>();
+		clustersMap = new HashMap<String, Integer>();
 		BufferedImage origImg;
 		BufferedImage resultImage;
 		
 		try {
 			origImg = ImageIO.read(new File("./src/input/me.png"));
 			resultImage = kMeans(origImg, 6);
-			map.put(clusters.get(0).getId(), '@');
-			map.put(clusters.get(1).getId(), '$');
-			map.put(clusters.get(2).getId(), '&');
-			map.put(clusters.get(3).getId(), '*');
-			map.put(clusters.get(4).getId(), '^');
-			map.put(clusters.get(5).getId(), '|');
-			
-			fileContent = praperToFile(fileContent);
+			setASCIIMap();
+			fileContent = praperToFile();
             makeFile(fileContent);
             saveResultImage(resultImage);
             
@@ -49,6 +44,22 @@ public class Main {
 			e.printStackTrace();
 		}
 		
+	}
+	
+	/*
+	 * setASCIIMap()
+	 * Get: void
+	 * Return: void
+	 * This method initializes the ASCII map.
+*/
+	public static void setASCIIMap() {
+		
+		asciiMap.put(clusters.get(0).getId(), '@');
+		asciiMap.put(clusters.get(1).getId(), '$');
+		asciiMap.put(clusters.get(2).getId(), '&');
+		asciiMap.put(clusters.get(3).getId(), '*');
+		asciiMap.put(clusters.get(4).getId(), '^');
+		asciiMap.put(clusters.get(5).getId(), '|');
 	}
 
 	public static BufferedImage kMeans(BufferedImage image, int k) {
@@ -64,24 +75,23 @@ public class Main {
             clusters.add(new Cluster(i, image.getRGB(x, y))); 
             x += dx; y += dy; 
         } 
-       			
-        lookupMat = new int[height][width]; 
-        for(int i=0; i < height; i++)
-        	Arrays.fill(lookupMat[i], -1);
         
         do  {
             changeFlag = false;    
             for (y=0; y < height; y++)  
                 for (x=0; x < width; x++) { 
-                    int pixel = image.getRGB(x, y); 
+                    int pixel = image.getRGB(x, y);
+                    String position = "(" + x + "," + y + ")";
                     Cluster cluster = findMinimalCluster(pixel); 
-                    if (lookupMat[y][x] != cluster.getId()) { // If we need to find new cluster to the pixel. 
-                            if (lookupMat[y][x] != -1)		  // If the cluster is not empty one.
-                                clusters.get(lookupMat[y][x])
+                    if(!clustersMap.containsKey(position))		 		// If the hash map not contain this key 
+                	    clustersMap.put(position, -1);
+                    if (clustersMap.get(position) != cluster.getId()) { // If we need to find new cluster to the pixel. 
+                    		if (clustersMap.get(position) != -1)		// If the cluster is not empty one.
+                                clusters.get(clustersMap.get(position))
                                 		.removePixel(pixel); 
-                            cluster.addPixel(pixel); 		  // Add the pixel value to the cluster. 
-                            lookupMat[y][x] = cluster.getId();// Update lookup matrix.
-                            changeFlag = true; 				  // The clusters are not stable yet so continuum the loop.
+                            cluster.addPixel(pixel); 		  			// Add the pixel value to the cluster. 
+                            clustersMap.put(position, cluster.getId()); // Update the new value.
+                            changeFlag = true; 				  			// The clusters are not stable yet so continuum the loop.
                     } 
                 }            
         } while(changeFlag); 
@@ -89,7 +99,8 @@ public class Main {
         
         for (y=0; y < height; y++)  
             for (x=0; x < width; x++) { 
-                int clusterId = lookupMat[y][x]; 
+            	String position = "(" + x + "," + y + ")";
+            	int clusterId = clustersMap.get(position);
                 resultImageultImage.setRGB(x, y, clusters.get(clusterId).getRGB()); 
             } 
         
@@ -112,10 +123,20 @@ public class Main {
         return cluster; 
     }
     
-    private static String praperToFile(String fileContent) {
+    /*
+     * praperToFile()
+     * Get: void
+     * Return: String - fileContent
+     * fileContent are fill by the ASCII lines and break line (\n) in the end of each line.   
+      */
+    private static String praperToFile() {
+    	
+    	String fileContent = "";
         for(int y=0; y < height; y++) {  
-            for(int x=0; x < width; x++)
-            		fileContent = fileContent + " " + map.get(lookupMat[y][x]); 
+            for(int x=0; x < width; x++) {
+            		String position = "(" + x + "," + y + ")";
+            		fileContent = fileContent + " " + asciiMap.get(clustersMap.get(position)); 
+            }
             fileContent = fileContent + "\n";
         } 
         return fileContent;
