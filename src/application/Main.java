@@ -10,18 +10,34 @@ import java.util.HashMap;
 import java.util.List;
 import javax.imageio.ImageIO;
 import entities.Cluster;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 /*
  * Moshe Saban
  */
 
-public class Main {
+public class Main extends Application{
 	
 	private static List<Cluster> clusters;
 	private static int width;
 	private static int height;
 	private static HashMap<String, Integer> clustersMap;
 	private static HashMap<Integer, Character> asciiMap;
+	
+	
+	@Override
+	public void start(Stage primaryStage) throws Exception {
+		
+		StackPane sp = new StackPane();
+		Scene root = new Scene(sp, 750, 750);
+		primaryStage.setScene(root);
+		primaryStage.show();
+		
+	}
 	
 	
 	public static void main(String[] args) {
@@ -33,7 +49,7 @@ public class Main {
 		BufferedImage resultImage;
 		
 		try {
-			origImg = ImageIO.read(new File("./src/input/me.png"));
+			origImg = ImageIO.read(new File("./src/input/moshe_small.png"));
 			resultImage = kMeans(origImg, 6);
 			setASCIIMap();
 			fileContent = praperToFile();
@@ -43,6 +59,8 @@ public class Main {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		launch(args);
 		
 	}
 	
@@ -164,5 +182,7 @@ public class Main {
 			ImageIO.write(resultImage, "png", new File("./src/output/out.png"));		
 		}catch (Exception e){ e.printStackTrace(); }
     }
+
+
 
 }
