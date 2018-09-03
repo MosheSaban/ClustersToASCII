@@ -8,12 +8,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
+
 import javax.imageio.ImageIO;
+
+
 import entities.Cluster;
 import javafx.application.Application;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import javafx.stage.Stage;
 
 /*
@@ -33,6 +42,8 @@ public class Main extends Application{
 	public void start(Stage primaryStage) throws Exception {
 		
 		StackPane sp = new StackPane();
+		createCircles(sp);
+		sp.setStyle("-fx-background-color: #707070");;
 		Scene root = new Scene(sp, 750, 750);
 		primaryStage.setScene(root);
 		primaryStage.show();
@@ -49,11 +60,11 @@ public class Main extends Application{
 		BufferedImage resultImage;
 		
 		try {
-			origImg = ImageIO.read(new File("./src/input/moshe_small.png"));
-			resultImage = kMeans(origImg, 6);
-			setASCIIMap();
-			fileContent = praperToFile();
-            makeFile(fileContent);
+			origImg = ImageIO.read(new File("./src/input/moshe.png"));
+			resultImage = kMeans(origImg, 15);
+			//setASCIIMap();
+		    //fileContent = praperToFile();
+            //makeFile(fileContent);
             saveResultImage(resultImage);
             
 		} catch (IOException e) {
@@ -122,7 +133,7 @@ public class Main extends Application{
                 resultImageultImage.setRGB(x, y, clusters.get(clusterId).getRGB()); 
             } 
         
-       Collections.sort(clusters);
+       //Collections.sort(clusters);
        return resultImageultImage;
 	}
 	
@@ -183,6 +194,35 @@ public class Main extends Application{
 		}catch (Exception e){ e.printStackTrace(); }
     }
 
-
+    private void createCircles(StackPane sp) {
+    	int scl = 5;
+    	float f;
+    	Group g = new Group();
+    	Random rand = new Random();
+        for(int y=0; y < height; y++) {  
+            for(int x=0; x < width; x++) {
+            	Shape c;
+            	String position = "(" + x + "," + y + ")";
+            	int color = clusters.get(clustersMap.get(position)).getRGB();
+                int r  = (color >> 16) & 0xFF;  
+                int gr = (color >>  8) & 0xFF;  
+                int b  = (color >>  0) & 0xFF;
+                int flag = rand.nextInt(2);
+                System.out.println(flag);
+                if(flag == 1) 
+                	c = new Circle((double) x*scl - (rand.nextInt(scl - 1) - scl / 2), 
+            						  (double) y*scl - (rand.nextInt(scl - 1) - scl / 2),
+            						  rand.nextInt(3) + 2);
+                else
+                	c = new Rectangle(x - scl / 2, y - scl / 2, scl, scl);
+            	c.setStroke(Color.rgb(20,20,20));
+            	f = rand.nextFloat();
+            	c.setFill(Color.rgb(r, gr, b, (( f + 0.4 ) <= 1) ?  f + 0.4 : 1));
+            	g.getChildren().add(c);
+            		 		
+            }
+        }
+        sp.getChildren().add(g);
+    }
 
 }
